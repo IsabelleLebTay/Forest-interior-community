@@ -1,0 +1,46 @@
+---
+title: "Site sampling protocol"
+author: "ILT"
+date: 2024-08-16
+output: 
+---
+
+
+```{r set up environment}
+library(tidyverse)
+library(remotes)
+library(htmltools)
+install.packages("htmltools")
+install_version("htmltools", version = "0.5.8.1")
+
+potential_sites <- read_csv("0. Data/Processed/Valid_BU_interior_points_ageOfHarv.csv")
+spec(potential_sites)
+sessionInfo()
+```
+
+![temporal distribution of sites]("2. Output/interior BU points and time since harvest within 250 m.png")
+
+```{r sample equally}
+spec(potential_sites)
+head(potential_sites)
+options(width=200)
+getOption("width")
+potential_sites_bins <- potential_sites %>%
+  mutate(
+    distance_bin = ntile(distance_nearest_harv, 20),  # Adjust the number of bins as needed
+    age_bin = ntile(Year_since_harvest, round(max(Year_since_harvest)/2))  # Adjust the number of bins as needed
+  )
+head(potential_sites_bins)
+hist(potential_sites_bins$age_bin)
+
+
+set.seed(321)
+
+sampled_df <- potential_sites_bins %>%
+  group_by(distance_bin, age_bin) %>%
+  sample_n(size = min(n(), 4))
+dim(sampled_df) # 524 sites
+head(sampled_df)
+hist(sampled_df$age_bin)
+
+```
